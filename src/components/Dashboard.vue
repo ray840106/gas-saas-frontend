@@ -130,128 +130,151 @@
   </script>
   
   <style scoped>
-  /* 核心版面設定 */
+  /* 版面：淺色底、大字級、留白足夠，長輩看得清楚 */
   .dashboard-wrapper {
-    padding: 30px;
-    background-color: #0f172a; /* 深色背景 */
-    color: #f1f5f9;
+    padding: 24px 20px 40px;
+    background-color: var(--bg);
+    color: var(--ink);
     min-height: 100vh;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
     display: flex;
     flex-direction: column;
-    gap: 24px; /* 區塊之間的間距 */
+    gap: 20px;
   }
-  
-  /* 頂部 Header (Flexbox 左右對齊) */
+
+  /* 頂部標題列 */
   .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
   }
   .dashboard-header h1 {
-    margin: 0 0 5px 0;
-    font-size: 28px;
-    color: #ffffff;
+    margin: 0 0 4px 0;
+    font-size: 26px;
+    color: var(--ink);
   }
   .subtitle {
     margin: 0;
-    color: #94a3b8;
-    font-size: 14px;
+    color: var(--ink-2);
+    font-size: 16px;
   }
   .primary-btn {
-    background-color: #10b981;
-    color: white;
+    background-color: var(--brand);
+    color: #fff;
     border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  .primary-btn:hover { background-color: #059669; }
-  
-  /* 通用卡片樣式 */
-  .card {
-    background-color: #1e293b;
-    border: 1px solid #334155;
+    padding: 14px 22px;
+    min-height: 52px;
     border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    transition: background-color 0.15s;
+  }
+  .primary-btn:hover { background-color: var(--brand-dark); }
+
+  /* 通用卡片 */
+  .card {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
     padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow);
   }
   .card h3 {
     margin-top: 0;
-    color: #cbd5e1;
-    font-size: 16px;
-    margin-bottom: 15px;
+    color: var(--ink-2);
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
   }
-  
-  /* 區塊一：數據指標 (CSS Grid 三等份) */
+
+  /* 區塊一：數據指標 */
   .stat-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
   }
+  .card-icon { font-size: 28px; line-height: 1; }
+  .stat-card h3 { margin-top: 10px; margin-bottom: 4px; }
   .stat-card .value {
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    margin: 10px 0;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 6px 0;
   }
-  .stat-card .trend { font-size: 14px; }
-  .trend.up { color: #10b981; }
-  .trend.neutral { color: #94a3b8; }
-  
-  /* 區塊二：圖表區 (CSS Grid 2:1 比例) */
+  .stat-card .trend { font-size: 16px; font-weight: 600; }
+  .trend.up { color: var(--brand-dark); }
+  .trend.neutral { color: var(--ink-2); }
+
+  /* 區塊二：圖表區 */
   .charts-section {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 20px;
+    gap: 16px;
   }
   .placeholder-chart {
-    background-color: #0f172a;
-    border-radius: 8px;
+    background-color: #f8fafc;
+    border-radius: 12px;
     height: 250px;
-    border: 1px dashed #475569;
+    border: 2px dashed var(--line);
+    text-align: center;
+    padding: 16px;
   }
   .placeholder-chart.circle { border-radius: 50%; width: 200px; height: 200px; margin: 0 auto; }
   .flex-center { display: flex; justify-content: center; align-items: center; }
-  .hint-text { color: #64748b; font-size: 14px; }
-  
+  .hint-text { color: var(--ink-2); font-size: 15px; }
+
   /* 區塊三：訂單表格 */
   .table-responsive { overflow-x: auto; }
   .order-table {
     width: 100%;
+    min-width: 560px;
     border-collapse: collapse;
     text-align: left;
+    font-size: 17px;
   }
   .order-table th {
-    padding: 15px;
-    border-bottom: 2px solid #334155;
-    color: #94a3b8;
-    font-weight: 500;
+    padding: 14px 12px;
+    border-bottom: 2px solid var(--line);
+    color: var(--ink-2);
+    font-weight: 600;
+    white-space: nowrap;
   }
   .order-table td {
-    padding: 15px;
-    border-bottom: 1px solid #334155;
-    color: #f1f5f9;
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
   }
-  .order-id { font-family: monospace; color: #38bdf8; }
-  .price { font-weight: bold; }
+  .order-table tbody tr:hover { background-color: #f8fafc; }
+  .order-id { font-family: ui-monospace, 'SFMono-Regular', monospace; color: var(--ink-2); }
+  .price { font-weight: 700; white-space: nowrap; }
   .gas-tag {
-    background-color: #334155;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
+    display: inline-block;
+    background-color: #eef1f5;
+    color: var(--ink);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
   }
-  
-  /* 狀態標籤 (動態綁定) */
+
+  /* 狀態標籤（用底色 + 文字，不只靠顏色分辨） */
   .status-badge {
-    padding: 6px 12px;
+    display: inline-block;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
   }
-  .status-badge.pending { background-color: #f59e0b20; color: #fbbf24; border: 1px solid #f59e0b50; }
-  .status-badge.delivering { background-color: #3b82f620; color: #60a5fa; border: 1px solid #3b82f650; }
-  .status-badge.completed { background-color: #10b98120; color: #34d399; border: 1px solid #10b98150; }
+  .status-badge.pending { background-color: #fff4e0; color: #9a5b00; border: 1px solid #f5cf94; }
+  .status-badge.delivering { background-color: #e7f0ff; color: #1450a3; border: 1px solid #a9c6f5; }
+  .status-badge.completed { background-color: var(--brand-soft); color: #05752f; border: 1px solid #9adcb7; }
+
+  /* 手機版：圖表改成上下排列 */
+  @media (max-width: 768px) {
+    .dashboard-wrapper { padding: 16px 14px 32px; }
+    .charts-section { grid-template-columns: 1fr; }
+    .primary-btn { width: 100%; }
+  }
   </style>

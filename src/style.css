@@ -1,80 +1,62 @@
+/* 全站基礎樣式：以「好讀、好按」為原則，字大、對比高、留白足夠 */
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* 品牌色（LINE 綠） */
+  --brand: #06c755;
+  --brand-dark: #05a648;
+  --brand-soft: #e8f8ee;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* 文字與介面 */
+  --ink: #16181d;
+  --ink-2: #5a6472;
+  --line: #e3e7ec;
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --danger: #d93025;
+  --danger-soft: #fdecea;
 
-  font-synthesis: none;
+  --radius: 16px;
+  --shadow: 0 6px 20px rgba(22, 24, 29, 0.08);
+
+  font-family: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
+  font-size: 17px; /* 中年使用者友善：基礎字級放大 */
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--bg);
+
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--ink);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  color: inherit;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-.card {
-  padding: 2em;
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* 統一的鍵盤焦點提示，方便看清楚目前選到哪裡 */
+:focus-visible {
+  outline: 3px solid var(--brand-dark);
+  outline-offset: 2px;
 }
