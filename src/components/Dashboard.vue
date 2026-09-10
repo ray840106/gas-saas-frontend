@@ -5,7 +5,10 @@
           <h1>儀表板 Dashboard</h1>
           <p class="subtitle">即時掌握瓦斯配送與營運狀況</p>
         </div>
-        <button class="primary-btn">+ 新增訂單</button>
+        <div class="header-actions">
+          <a class="secondary-link" href="#/driver">🚚 送貨路線</a>
+          <button class="primary-btn">+ 新增訂單</button>
+        </div>
       </header>
   
       <section class="stat-cards">
@@ -169,6 +172,16 @@
     transition: 0.2s;
   }
   .primary-btn:hover { background-color: #059669; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+  .secondary-link {
+    color: #38bdf8;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 10px 16px;
+    border: 1px solid #334155;
+    border-radius: 8px;
+  }
+  .secondary-link:hover { border-color: #38bdf8; }
   
   /* 通用卡片樣式 */
   .card {

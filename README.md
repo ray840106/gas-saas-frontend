@@ -1,18 +1,37 @@
-# Vue 3 + TypeScript + Vite
+# 瓦斯行前端 (Vue 3 + TypeScript + Vite)
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+```bash
+npm install
+npm run dev      # 開發模式
+npm run build    # 打包
+```
 
-## Recommended IDE Setup
+後端網址由 `VITE_API_BASE_URL` 指定（見 `.env.production`）。
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+## 畫面切換
 
-## Type Support For `.vue` Imports in TS
+用網址 hash 切換，不需要安裝 vue-router：
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+| 網址 | 畫面 | 使用者 |
+| --- | --- | --- |
+| `/` | 叫瓦斯表單（LIFF） | 客戶 |
+| `/#/driver` | 🚚 送貨路線規劃 | 送瓦斯的師傅 |
+| `/#/dashboard` | 後台儀表板 | 老闆 |
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+## 🚚 送貨路線規劃（`src/components/DriverRoute.vue`）
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+給師傅在手機上使用，操作流程：
+
+1. **選起點** — 目前位置（GPS）／瓦斯行（後端 `DEPOT_*` 設定）／手動輸入地址，
+   也可以勾選「送完要繞回出發點」把回程里程算進去。
+2. **勾選訂單** — 預設全選當前所有待配送訂單，可依日期篩選。
+3. **排出最佳路線** — 後端算出最短順序，同一個地址的多張訂單會自動併成一站。
+4. **導航** — 每一站都有「🧭 導航」直接開啟 Google 地圖；
+   也可以用「🗺️ 在 Google 地圖開啟整趟」一次帶入所有站點
+   （Google 單一連結最多 9 個中途點，超過會自動分段）。
+5. **回報送達** — 按「✅ 已送達」更新訂單狀態，畫面上會打勾並顯示剩餘站數。
+
+路線與已送達進度會存在瀏覽器的 localStorage，師傅中途切到 LINE 或不小心關掉頁面，
+12 小時內回來還看得到同一份路線。
+
+> 想把這頁掛進 LINE 官方帳號的圖文選單，網址填 `https://<你的網域>/#/driver` 即可。
