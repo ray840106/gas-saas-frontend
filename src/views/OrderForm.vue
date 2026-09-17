@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import liff from '@line/liff'
+import { LIFF_ID } from '../lineConfig'
 
 interface Profile {
   userId: string;
@@ -20,8 +21,7 @@ const address = ref<string>('')     // 送貨地址
 
 onMounted(async () => {
   try {
-    // ⚠️ 記得換成你的 LIFF ID
-    await liff.init({ liffId: '2010214891-TocDb9gS' })
+    await liff.init({ liffId: LIFF_ID })
 
     if (liff.isLoggedIn()) {
       isLoggedIn.value = true
