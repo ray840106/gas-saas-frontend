@@ -80,11 +80,11 @@
   
   <script setup>
   import { ref, onMounted } from 'vue';
-  import axios from 'axios'; // 確保專案有安裝 axios (npm install axios)
-  
+  import api from '../api';
+
   // 初始化為空陣列，等待 API 載入
   const recentOrders = ref([]);
-  
+
   // 核心：狀態轉換邏輯（將資料庫的英文狀態，映射為前端的中文與樣式 class）
   const mapStatus = (status) => {
     const mapping = {
@@ -92,29 +92,30 @@
       delivering: { class: 'delivering', text: '配送中' },
       completed: { class: 'completed', text: '已送達' }
     };
-    // 如果資料庫傳了預設以外的字，防呆回傳處理中
+    // 資料表目前還沒有 status 欄位，撈不到時一律視為處理中
     return mapping[status] || { class: 'pending', text: '處理中' };
   };
-  
+
+  // 單桶價格：20 公斤 850 元，其餘（16 公斤）700 元
+  const unitPriceOf = (gasWeight) => (String(gasWeight) === '20' ? 850 : 700);
+
   // 呼叫後端 API 的主函數
   const fetchOrders = async () => {
     try {
-      // 自動讀取我們在 Render/環境變數 設定好的後端主網址
-      const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-      
-      const response = await axios.get(`${apiBase}/api/orders`);
-      
+      const response = await api.get('/api/orders');
+
       if (response.data.success) {
-        // 將資料庫撈出來的原始欄位，完美對接到前端 Template 使用的變數
+        // 這裡的欄位要跟後端 insert 進 gas_order 的欄位一致
         recentOrders.value = response.data.data.map(item => {
           const statusInfo = mapStatus(item.status);
+          const quantity = Number(item.quantity) || 1;
           return {
             id: `ORD-${String(item.id).padStart(3, '0')}`, // 幫 ID 自動補零，例如 1 變成 ORD-001
             customer: item.customer_name,
-            size: item.gas_size,
+            size: `${item.gas_weight} 公斤 × ${quantity} 桶`,
             statusClass: statusInfo.class,
             statusText: statusInfo.text,
-            price: item.gas_size === '20kg' ? '850' : '700' // 依據瓦斯桶重量簡單判斷金額
+            price: (unitPriceOf(item.gas_weight) * quantity).toLocaleString('zh-TW')
           };
         });
       }
@@ -122,7 +123,7 @@
       console.error('無法撈取後端訂單資料:', error);
     }
   };
-  
+
   // 網頁元件掛載完畢後，立刻自動執行撈取
   onMounted(() => {
     fetchOrders();

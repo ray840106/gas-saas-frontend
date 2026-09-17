@@ -1,18 +1,11 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import Dashboard from './components/Dashboard.vue'
 
-createApp(App).mount('#app')
+// 專案還沒有引進 vue-router，先用網址參數決定掛哪一頁：
+//   ?view=dashboard → 後台儀表板（純瀏覽器開，不會初始化 LIFF）
+//   其他            → LIFF 點餐頁
+const isDashboard = new URLSearchParams(location.search).get('view') === 'dashboard'
 
-import axios from 'axios';
-
-const request = axios.create({
-  // 動態讀取 Vite 的環境變數
-  baseURL: import.meta.env.VITE_API_BASE_URL, 
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-export default request;
+createApp(isDashboard ? Dashboard : App).mount('#app')

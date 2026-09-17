@@ -47,8 +47,8 @@ const handleOrder = async (): Promise<void> => {
   isLoading.value = true
 
   try {
-    // ⚠️ 記得換成你 Port 3000 的 SSH 穿透網址
-    const backendUrl = 'https://gas-saas-backend.onrender.com/api/order';
+    // 後端網址來自 .env.development / .env.production 的 VITE_API_BASE_URL
+    const backendUrl = `${import.meta.env.VITE_API_BASE_URL}/api/order`;
     
     const response = await fetch(backendUrl, {
       method: 'POST',
