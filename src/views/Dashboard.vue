@@ -5,9 +5,12 @@
         <h1>儀表板</h1>
         <p class="subtitle">即時掌握瓦斯配送與營運狀況</p>
       </div>
-      <button class="btn-primary" :disabled="isLoading" @click="fetchOrders">
-        {{ isLoading ? '載入中…' : '重新整理' }}
-      </button>
+      <div class="head-actions">
+        <router-link class="btn-ghost" to="/driver">🚚 配送清單</router-link>
+        <button class="btn-primary" :disabled="isLoading" @click="fetchOrders">
+          {{ isLoading ? '載入中…' : '重新整理' }}
+        </button>
+      </div>
     </header>
 
     <p v-if="errorMsg" class="banner" role="alert">
@@ -219,6 +222,30 @@ onMounted(fetchOrders);
   margin: 0;
   color: var(--text-secondary);
   font-size: 14px;
+}
+
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-ghost:hover {
+  color: var(--text-primary);
+  border-color: #475569;
 }
 
 .btn-primary {
@@ -491,8 +518,15 @@ onMounted(fetchOrders);
     align-items: stretch;
   }
 
+  .head-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .btn-ghost,
   .btn-primary {
     width: 100%;
+    text-align: center;
   }
 
   .kpi-value {

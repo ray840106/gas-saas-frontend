@@ -58,6 +58,12 @@ body.theme-liff {
   color: #1f2937;
 }
 
+/* 師傅頁用淺色高對比：這頁多半在戶外陽光下看，深色反而看不清楚 */
+body.theme-driver {
+  background-color: #eef1f6;
+  color: #111827;
+}
+
 #app {
   min-height: 100vh;
 }
