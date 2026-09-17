@@ -92,8 +92,9 @@
       delivering: { class: 'delivering', text: '配送中' },
       completed: { class: 'completed', text: '已送達' }
     };
-    // 資料表目前還沒有 status 欄位，撈不到時一律視為處理中
-    return mapping[status] || { class: 'pending', text: '處理中' };
+    // gas_order.status 的預設值連同單引號一起存成 'pending'，比對前先去掉頭尾引號
+    const key = String(status ?? '').trim().replace(/^'(.*)'$/, '$1').trim();
+    return mapping[key] || { class: 'pending', text: '處理中' };
   };
 
   // 單桶價格：20 公斤 850 元，其餘（16 公斤）700 元
