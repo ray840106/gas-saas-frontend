@@ -1,80 +1,83 @@
+/* ------------------------------------------------------------------
+   全域基礎樣式與共用設計變數
+   各頁面自己的配色寫在該元件的 scoped style 裡，這裡只放共用的部分
+   ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-sans: 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', system-ui,
+    -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+
+  /* LINE 品牌綠 #06c755 配白字的對比只有 2.26:1，連大字的 3:1 都不到。
+     所以品牌綠只用於點綴與選取狀態，白字填色按鈕改用加深版（4.75:1，過 AA）。 */
+  --brand: #06c755;
+  --brand-strong: #048539;
+  --brand-strong-hover: #037a34;
+
+  font-family: var(--font-sans);
   line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+html,
+body {
+  margin: 0;
+  min-height: 100%;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
-  min-height: 100vh;
+  font-family: var(--font-sans);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* main.ts 會依照掛載的頁面加上對應 class。
+   設在 body 上是為了讓手機捲動超出範圍時，露出的底色也是對的。 */
+body.theme-dashboard {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-.card {
-  padding: 2em;
+body.theme-liff {
+  background-color: #f0f2f5;
+  color: #1f2937;
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  min-height: 100vh;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  font-size: 100%;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:where(button, input, select, a):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
