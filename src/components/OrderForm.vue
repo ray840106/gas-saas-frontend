@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import liff from '@line/liff'
+import {
+  deleteAddress,
+  fetchAddresses,
+  verifyAddress,
+  type AddressVerifyResult,
+  type SavedAddress
+} from '../api/customer'
 
 interface Profile {
   userId: string;
@@ -13,10 +20,33 @@ const profile = ref<Profile | null>(null)
 const errorMsg = ref<string>('')
 const isLoading = ref<boolean>(false) // 防止重複點擊的狀態
 
-// 🌟 新增：表單的響應式變數
+// 🌟 表單的響應式變數
 const gasWeight = ref<string>('20') // 預設 20 公斤
 const quantity = ref<number>(1)     // 預設 1 桶
-const address = ref<string>('')     // 送貨地址
+
+// 🌟 地址簿：常用地址用下拉選單選，不必每次重打
+const savedAddresses = ref<SavedAddress[]>([])
+const selectedAddressKey = ref<string>('')   // 下拉選單目前選到的地址
+const isAddingNewAddress = ref<boolean>(false)
+const newAddress = ref<string>('')           // 只有在「輸入新地址」時才用到
+const newAddressLabel = ref<string>('')      // 選填，例如「住家」「店面」
+const addressCheck = ref<AddressVerifyResult | null>(null)
+const isCheckingAddress = ref<boolean>(false)
+
+/** 下拉選單用的唯一值（有 id 用 id，歷史訂單地址就用地址本身） */
+const addressKey = (item: SavedAddress) => String(item.id ?? `history:${item.address}`)
+
+const selectedAddress = computed(() =>
+  savedAddresses.value.find((item) => addressKey(item) === selectedAddressKey.value) || null
+)
+
+/** 這次下單實際要送的地址 */
+const effectiveAddress = computed(() =>
+  isAddingNewAddress.value ? newAddress.value.trim() : (selectedAddress.value?.address || '')
+)
+
+const addressOptionText = (item: SavedAddress) =>
+  item.label ? `${item.label}｜${item.address}` : item.address
 
 onMounted(async () => {
   try {
@@ -26,6 +56,7 @@ onMounted(async () => {
     if (liff.isLoggedIn()) {
       isLoggedIn.value = true
       profile.value = await liff.getProfile() as Profile
+      await loadAddresses()
     } else {
       liff.login()
     }
@@ -35,13 +66,91 @@ onMounted(async () => {
   }
 })
 
+/** 讀取常用地址，並自動帶出預設（清單第一筆就是預設／最近使用的） */
+const loadAddresses = async (): Promise<void> => {
+  if (!profile.value) return
+
+  try {
+    savedAddresses.value = await fetchAddresses(profile.value.userId)
+    if (savedAddresses.value.length) {
+      selectedAddressKey.value = addressKey(savedAddresses.value[0])
+      isAddingNewAddress.value = false
+    } else {
+      // 第一次叫瓦斯的新客戶，直接進入輸入模式
+      isAddingNewAddress.value = true
+    }
+  } catch (err) {
+    console.error('讀取常用地址失敗', err)
+    isAddingNewAddress.value = true // 讀不到也要能照常下單
+  }
+}
+
+const startNewAddress = (): void => {
+  isAddingNewAddress.value = true
+  newAddress.value = ''
+  newAddressLabel.value = ''
+  addressCheck.value = null
+}
+
+const cancelNewAddress = (): void => {
+  isAddingNewAddress.value = false
+  addressCheck.value = null
+  if (savedAddresses.value.length && !selectedAddressKey.value) {
+    selectedAddressKey.value = addressKey(savedAddresses.value[0])
+  }
+}
+
+/** 送出前先跟地圖核對一次，打錯字當場就知道 */
+const checkNewAddress = async (): Promise<void> => {
+  const address = newAddress.value.trim()
+  if (!address) {
+    addressCheck.value = null
+    return
+  }
+
+  isCheckingAddress.value = true
+  try {
+    addressCheck.value = await verifyAddress(address)
+  } catch (err) {
+    console.error('地址檢查失敗', err)
+    addressCheck.value = null // 檢查服務出問題時不擋客戶下單
+  } finally {
+    isCheckingAddress.value = false
+  }
+}
+
+const removeSelectedAddress = async (): Promise<void> => {
+  const target = selectedAddress.value
+  if (!profile.value || !target || target.id == null) return
+  if (!confirm(`確定要把「${target.address}」從常用地址移除嗎？`)) return
+
+  try {
+    await deleteAddress(profile.value.userId, target.id)
+    await loadAddresses()
+  } catch (err) {
+    alert(`刪除失敗：${(err as Error).message}`)
+  }
+}
+
 const handleOrder = async (): Promise<void> => {
   if (!profile.value) return;
-  
+
   // 🌟 表單驗證：檢查有沒有填寫地址
-  if (!address.value.trim()) {
-    alert('老闆，請記得填寫送貨地址喔！')
+  if (!effectiveAddress.value) {
+    alert('老闆，請記得選擇或填寫送貨地址喔！')
     return;
+  }
+
+  // 新地址還沒核對過就先核對，讓客戶有機會修正
+  if (isAddingNewAddress.value && !addressCheck.value) {
+    await checkNewAddress()
+  }
+  if (isAddingNewAddress.value && addressCheck.value && !addressCheck.value.verified) {
+    const goAhead = confirm(
+      `⚠️ 地圖上找不到「${effectiveAddress.value}」。\n` +
+      `送出後師傅可能會找不到路，確定要用這個地址嗎？`
+    )
+    if (!goAhead) return
   }
 
   isLoading.value = true
@@ -56,9 +165,10 @@ const handleOrder = async (): Promise<void> => {
       body: JSON.stringify({
         userId: profile.value.userId,
         displayName: profile.value.displayName,
-        gasWeight: gasWeight.value, // 傳送瓦斯規格
-        quantity: quantity.value,   // 傳送數量
-        address: address.value      // 傳送地址
+        gasWeight: gasWeight.value,   // 傳送瓦斯規格
+        quantity: quantity.value,     // 傳送數量
+        address: effectiveAddress.value, // 傳送地址
+        addressLabel: isAddingNewAddress.value ? newAddressLabel.value.trim() : '' // 新地址的自訂名稱
       })
     });
 
@@ -113,7 +223,76 @@ const handleOrder = async (): Promise<void> => {
 
       <div class="form-group">
         <label>📍 送貨地址</label>
-        <input type="text" v-model="address" placeholder="請輸入完整地址" class="input-field" />
+
+        <!-- 有存過的地址：直接用下拉選單挑，預設帶出最常用的那一個 -->
+        <template v-if="!isAddingNewAddress">
+          <select v-model="selectedAddressKey" class="input-field">
+            <option
+              v-for="item in savedAddresses"
+              :key="addressKey(item)"
+              :value="addressKey(item)"
+            >
+              {{ addressOptionText(item) }}
+            </option>
+          </select>
+
+          <!-- 下拉選單會截斷長地址，這裡補上完整內容讓客戶再確認一次 -->
+          <p v-if="selectedAddress" class="address-hint">
+            {{ selectedAddress.address }}
+            <span v-if="selectedAddress.source === 'order-history'">（來自您過去的訂單）</span>
+          </p>
+
+          <div class="address-actions">
+            <button type="button" class="text-btn" @click="startNewAddress">
+              ✏️ 送到其他地址
+            </button>
+            <button
+              v-if="selectedAddress && selectedAddress.id != null"
+              type="button"
+              class="text-btn danger"
+              @click="removeSelectedAddress"
+            >
+              🗑 移除這個地址
+            </button>
+          </div>
+        </template>
+
+        <!-- 輸入新地址：離開欄位時自動跟地圖核對一次 -->
+        <template v-else>
+          <input
+            type="text"
+            v-model="newAddress"
+            placeholder="請輸入完整地址（含縣市、路名、門牌號碼）"
+            class="input-field"
+            @blur="checkNewAddress"
+          />
+          <input
+            type="text"
+            v-model="newAddressLabel"
+            placeholder="幫這個地址取個名字（選填，例如：住家、店面）"
+            class="input-field sub-field"
+          />
+
+          <p v-if="isCheckingAddress" class="address-hint">🔍 地址確認中…</p>
+          <p v-else-if="addressCheck?.verified" class="address-hint ok">
+            ✅ 地圖已找到：{{ addressCheck.formattedAddress }}
+          </p>
+          <p v-else-if="addressCheck" class="address-hint warn">
+            ⚠️ {{ addressCheck.reason }}
+          </p>
+          <p v-else class="address-hint">送出後會自動記住，下次直接選取就好。</p>
+
+          <div class="address-actions">
+            <button
+              v-if="savedAddresses.length"
+              type="button"
+              class="text-btn"
+              @click="cancelNewAddress"
+            >
+              ↩ 改用常用地址
+            </button>
+          </div>
+        </template>
       </div>
       
       <button class="order-btn" @click="handleOrder" :disabled="isLoading">
@@ -179,11 +358,41 @@ const handleOrder = async (): Promise<void> => {
   border-radius: 8px;
   font-size: 16px;
   box-sizing: border-box;
+  background: #fff;
+  color: #333;
 }
 .input-field:focus {
   border-color: #06c755;
   outline: none;
 }
+.sub-field {
+  margin-top: 8px;
+  font-size: 15px;
+}
+.address-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+}
+.text-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  color: #06c755;
+  cursor: pointer;
+}
+.text-btn.danger { color: #c0392b; }
+.address-hint {
+  font-size: 13px;
+  color: #6b7684;
+  margin: 8px 0 0;
+  line-height: 1.5;
+  word-break: break-all;
+}
+.address-hint.ok { color: #1b7a3d; }
+.address-hint.warn { color: #b3261e; }
 .order-btn {
   background-color: #06c755;
   color: white;

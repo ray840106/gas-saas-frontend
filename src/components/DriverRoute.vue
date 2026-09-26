@@ -22,6 +22,7 @@ import {
 } from '../api/delivery'
 
 const STORAGE_KEY = 'gas-driver-route'
+const PREFS_KEY = 'gas-driver-prefs'
 
 const config = ref<DeliveryConfig | null>(null)
 const orders = ref<DeliveryOrder[]>([])
@@ -88,6 +89,35 @@ function saveLocal() {
   }
 }
 
+/** 記住師傅慣用的起點設定，下次開啟不用重選、重打 */
+function savePrefs() {
+  try {
+    localStorage.setItem(
+      PREFS_KEY,
+      JSON.stringify({
+        originMode: originMode.value,
+        manualAddress: manualAddress.value,
+        returnToOrigin: returnToOrigin.value
+      })
+    )
+  } catch {
+    /* 寫不進去就算了，不影響功能 */
+  }
+}
+
+function restorePrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY)
+    if (!raw) return
+    const saved = JSON.parse(raw)
+    if (saved.originMode) originMode.value = saved.originMode
+    if (saved.manualAddress) manualAddress.value = saved.manualAddress
+    returnToOrigin.value = Boolean(saved.returnToOrigin)
+  } catch {
+    /* 壞掉的暫存直接略過 */
+  }
+}
+
 function restoreLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -127,6 +157,7 @@ async function useCurrentPosition() {
     gpsPosition.value = await getCurrentPosition()
     originMode.value = 'gps'
     noticeMsg.value = '✅ 已取得目前位置'
+    savePrefs()
   } catch (err) {
     noticeMsg.value = ''
     errorMsg.value = (err as Error).message
@@ -187,6 +218,7 @@ async function handlePlan() {
     planStartedAt.value = Date.now()
     doneOrderIds.value = []
     saveLocal()
+    savePrefs()
   } catch (err) {
     errorMsg.value = (err as Error).message
   } finally {
@@ -245,9 +277,12 @@ function resetPlan() {
 }
 
 onMounted(async () => {
+  restorePrefs()
   restoreLocal()
   try {
     config.value = await fetchDeliveryConfig()
+    // 後端沒設定瓦斯行位置時，記住的「瓦斯行起點」要退回目前位置，免得排路線缺起點
+    if (originMode.value === 'depot' && !config.value.depot) originMode.value = 'gps'
     // 沒開定位權限的話，至少要有瓦斯行地址當備案
     if (!navigator.geolocation && config.value.depot) originMode.value = 'depot'
   } catch (err) {
