@@ -3,8 +3,7 @@
  * 對應後端 gas-saas-backend 的 /api/customers/*
  */
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || 'https://gas-saas-backend.onrender.com'
+import { request } from './base'
 
 export interface SavedAddress {
   id: number | string | null
@@ -27,19 +26,6 @@ export interface AddressVerifyResult {
   lat?: number
   lng?: number
   reason?: string
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init
-  })
-
-  const body = await response.json().catch(() => ({}))
-  if (!response.ok || body.success === false) {
-    throw new Error(body.message || `伺服器回應 ${response.status}`)
-  }
-  return body.data as T
 }
 
 /** 取得這位客戶的常用地址（含從歷史訂單找到的） */

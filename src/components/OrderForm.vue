@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import liff from '@line/liff'
+import { API_BASE } from '../api/base'
 import {
   deleteAddress,
   fetchAddresses,
@@ -156,8 +157,8 @@ const handleOrder = async (): Promise<void> => {
   isLoading.value = true
 
   try {
-    // ⚠️ 記得換成你 Port 3000 的 SSH 穿透網址
-    const backendUrl = 'https://gas-saas-backend.onrender.com/api/order';
+    // 後端網址讀 VITE_API_BASE_URL（本機開發時可在 .env.development 覆蓋）
+    const backendUrl = `${API_BASE}/api/order`;
     
     const response = await fetch(backendUrl, {
       method: 'POST',
